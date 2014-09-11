@@ -105,11 +105,15 @@ object EntitySimilarity{
           val topicDbpedia = relationship.get("topic_dbpedia").get
           val topicMid = relationship.get("topic_mid").get
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
-          Some( (similarityScore, topicMid, topicDbpedia, typeId) )
           counter.set(counter.get() + 1)
           println(counter.get()+"..")
+          Some( (similarityScore, topicMid, topicDbpedia, typeId) )
+
         }catch {
-          case e:Exception =>  None
+          case e:Exception => {
+            println(e.getMessage)
+            None
+          }
         }
 
 
