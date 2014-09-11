@@ -107,9 +107,9 @@ object EntitySimilarity{
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
           Some( (similarityScore, topicMid, topicDbpedia, typeId) )
           counter.set(counter.get() + 1)
+          println(counter.get()+"..")
         }catch {
-          case e:Exception => { println(e.getMessage)
-            None}
+          case e:Exception =>  None
         }
 
 
