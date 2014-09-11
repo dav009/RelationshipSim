@@ -87,6 +87,8 @@ object EntitySimilarity{
     val pathToSpotlightModel = args(2)
     val pathToOutputFile= args(3)
 
+    val writer = new PrintWriter(new File(pathToOutputFile))
+
     println("loading type samples file..")
     val typeSamples = loadTypeSamples(pathsToFileWithTypeSamples)
 
@@ -97,7 +99,7 @@ object EntitySimilarity{
 
     println("calculating weights..")
     val counter:AtomicInteger = new AtomicInteger(0)
-    val weightedRelationships = allRelationshipLines.par.map{
+    val weightedRelationships = allRelationshipLines.par.foreach{
       line:String =>
         val relationship = line.trim().parseJson.convertTo[Map[String, String]]
         try {
@@ -106,28 +108,33 @@ object EntitySimilarity{
           val topicMid = relationship.get("topic_mid").get
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
           counter.set(counter.get() + 1)
+
+
+          val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
           println(counter.get()+"..")
-          Some( (similarityScore, topicMid, topicDbpedia, typeId) )
+          println(lineToWrite)
+          println("---------------------")
+          writer.write(lineToWrite)
 
         }catch {
           case e:Exception => {
             println(e.getMessage)
-            None
+
           }
         }
 
 
-    }.flatten
+    }
 
 
 
     // write them to file
     println("saving file..")
-    val writer = new PrintWriter(new File(pathToOutputFile))
+
 
     weightedRelationships.toList.foreach{
         case(similarityScore:Double, topicMid:String, topicDbpedia:String, typeId:String) =>
-          writer.write(similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n")
+
     }
 
     writer.close()
