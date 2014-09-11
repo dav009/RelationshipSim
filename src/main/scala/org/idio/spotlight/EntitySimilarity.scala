@@ -96,7 +96,7 @@ object EntitySimilarity{
     println("loading similarity calculator..")
     val similarityCalculator = new EntitySimilarity(pathToSpotlightModel, typeSamples)
 
-    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toList
+    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
 
     println("calculating weights..")
     val counter:AtomicInteger = new AtomicInteger(0)
@@ -111,8 +111,6 @@ object EntitySimilarity{
           val topicDbpedia = relationship.get("topic_dbpedia").get
           val topicMid = relationship.get("topic_mid").get
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
-
-
 
           val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
 
