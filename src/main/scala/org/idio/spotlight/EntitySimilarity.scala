@@ -126,17 +126,6 @@ object EntitySimilarity{
 
     }
 
-
-
-    // write them to file
-    println("saving file..")
-
-
-    weightedRelationships.toList.foreach{
-        case(similarityScore:Double, topicMid:String, topicDbpedia:String, typeId:String) =>
-
-    }
-
     writer.close()
 
   }
