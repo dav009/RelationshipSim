@@ -1,6 +1,7 @@
 package org.idio.spotlight
 
 import java.io.{PrintWriter, File, FileInputStream}
+import java.util.concurrent.atomic.AtomicInteger
 import _root_.spray.json.DefaultJsonProtocol
 import org.dbpedia.spotlight.db.memory.{MemoryTokenTypeStore, MemoryContextStore, MemoryStore, MemoryResourceStore}
 import org.dbpedia.spotlight.model.{DBpediaResource, TokenType}
@@ -95,6 +96,7 @@ object EntitySimilarity{
     val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
 
     println("calculating weights..")
+    val counter:AtomicInteger = new AtomicInteger(0)
     val weightedRelationships = allRelationshipLines.par.map{
       line:String =>
         val relationship = line.trim().parseJson.convertTo[Map[String, String]]
@@ -104,9 +106,11 @@ object EntitySimilarity{
           val topicMid = relationship.get("topic_mid").get
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
           Some( (similarityScore, topicMid, topicDbpedia, typeId) )
+          counter.set(counter.get() + 1)
         }catch {
-          case e:Exception => None
+          case e:Exception => { println(e.getMessage) None}
         }
+
 
     }.flatten
 
