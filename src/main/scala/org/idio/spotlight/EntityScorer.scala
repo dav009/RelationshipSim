@@ -5,9 +5,9 @@ import org.dbpedia.spotlight.model.TokenType
 /**
  * Created by dav009 on 10/09/2014.
  */
-class EntityScorer(val vector1:Map[TokenType, Double],val vector2:Map[TokenType, Double] ){
+object EntityScorer {
 
-  def score():Double={
+  def score(vector1:Map[TokenType, Double],vector2:Map[TokenType, Double]):Double={
     var score :Double= 0.0
     val keysOverlap = vector1.keySet.intersect(vector2.keySet).toSet
     keysOverlap.foreach{

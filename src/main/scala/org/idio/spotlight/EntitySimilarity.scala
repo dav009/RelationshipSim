@@ -61,7 +61,8 @@ class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, Lis
     try{
       val typeVector = typeVectors.get(midType).get
       val entityVector = getVector(entity)
-      score = new EntityScorer(typeVector, entityVector).score()
+      score = EntityScorer.score(typeVector, entityVector)
+      //score = new EntityScorer(typeVector, entityVector).score()
     }catch{
       case e:Exception =>
     }
@@ -95,7 +96,7 @@ object EntitySimilarity{
     println("loading similarity calculator..")
     val similarityCalculator = new EntitySimilarity(pathToSpotlightModel, typeSamples)
 
-    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toList
+    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
 
     println("calculating weights..")
     val counter:AtomicInteger = new AtomicInteger(0)
