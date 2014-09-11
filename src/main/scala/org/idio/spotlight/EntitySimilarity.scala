@@ -108,7 +108,8 @@ object EntitySimilarity{
           Some( (similarityScore, topicMid, topicDbpedia, typeId) )
           counter.set(counter.get() + 1)
         }catch {
-          case e:Exception => { println(e.getMessage) None}
+          case e:Exception => { println(e.getMessage)
+            None}
         }
 
 
