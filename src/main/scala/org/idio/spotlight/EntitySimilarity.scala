@@ -102,10 +102,11 @@ object EntitySimilarity{
     val counter:AtomicInteger = new AtomicInteger(0)
     allRelationshipLines.par.foreach{
       line:String =>
-        counter.set(counter.get() + 1)
-        println(counter.get()+"..")
-        val relationship = line.trim().parseJson.convertTo[Map[String, String]]
+
         try {
+          counter.set(counter.get() + 1)
+          println(counter.get()+"..")
+          val relationship = line.trim().parseJson.convertTo[Map[String, String]]
           val typeId = relationship.get("type_id").get
           val topicDbpedia = relationship.get("topic_dbpedia").get
           val topicMid = relationship.get("topic_mid").get
