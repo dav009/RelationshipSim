@@ -95,11 +95,11 @@ object EntitySimilarity{
     println("loading similarity calculator..")
     val similarityCalculator = new EntitySimilarity(pathToSpotlightModel, typeSamples)
 
-    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
+    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toList
 
     println("calculating weights..")
     val counter:AtomicInteger = new AtomicInteger(0)
-    val weightedRelationships = allRelationshipLines.par.foreach{
+    allRelationshipLines.par.foreach{
       line:String =>
         val relationship = line.trim().parseJson.convertTo[Map[String, String]]
         try {
