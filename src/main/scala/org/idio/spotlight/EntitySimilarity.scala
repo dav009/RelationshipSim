@@ -113,8 +113,8 @@ object EntitySimilarity{
 
           val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
           println(counter.get()+"..")
-          println(lineToWrite)
-          println("---------------------")
+          //println(lineToWrite)
+          //println("---------------------")
           writer.write(lineToWrite)
 
         }catch {
