@@ -1,6 +1,6 @@
 package org.idio.spotlight
 
-import java.io.{File, FileInputStream}
+import java.io.{PrintWriter, File, FileInputStream}
 import _root_.spray.json.DefaultJsonProtocol
 import org.dbpedia.spotlight.db.memory.{MemoryTokenTypeStore, MemoryContextStore, MemoryStore, MemoryResourceStore}
 import org.dbpedia.spotlight.model.{DBpediaResource, TokenType}
@@ -25,6 +25,7 @@ class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, Lis
 
   // build type vectors
   val typeVectors: Map[String, Map[TokenType, Double]]  = {
+    println("calculating type vectors....")
     typeSamples.mapValues(getVector(_))
   }
 
@@ -83,14 +84,18 @@ object EntitySimilarity{
     val pathToFileWithRels = args(0)
     val pathsToFileWithTypeSamples = args(1)
     val pathToSpotlightModel = args(2)
+    val pathToOutputFile= args(3)
 
+    println("loading type samples file..")
     val typeSamples = loadTypeSamples(pathsToFileWithTypeSamples)
 
+    println("loading similarity calculator..")
     val similarityCalculator = new EntitySimilarity(pathToSpotlightModel, typeSamples)
 
     val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
 
-    allRelationshipLines.par.map{
+    println("calculating weights..")
+    val weightedRelationships = allRelationshipLines.par.map{
       line:String =>
         val relationship = line.trim().parseJson.convertTo[Map[String, String]]
         try {
@@ -103,7 +108,20 @@ object EntitySimilarity{
           case e:Exception => None
         }
 
+    }.flatten
+
+
+
+    // write them to file
+    println("saving file..")
+    val writer = new PrintWriter(new File(pathToOutputFile))
+
+    weightedRelationships.toList.foreach{
+        case(similarityScore:Double, topicMid:String, topicDbpedia:String, typeId:String) =>
+          writer.write(similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n")
     }
+
+    writer.close()
 
   }
 
