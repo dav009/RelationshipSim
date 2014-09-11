@@ -64,7 +64,7 @@ class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, Lis
       score = EntityScorer.score(typeVector, entityVector)
       //score = new EntityScorer(typeVector, entityVector).score()
     }catch{
-      case e:Exception =>
+      case e:Exception => println(e.getMessage())
     }
 
     score
@@ -102,17 +102,19 @@ object EntitySimilarity{
     val counter:AtomicInteger = new AtomicInteger(0)
     allRelationshipLines.par.foreach{
       line:String =>
+        counter.set(counter.get() + 1)
+        println(counter.get()+"..")
         val relationship = line.trim().parseJson.convertTo[Map[String, String]]
         try {
           val typeId = relationship.get("type_id").get
           val topicDbpedia = relationship.get("topic_dbpedia").get
           val topicMid = relationship.get("topic_mid").get
           val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
-          counter.set(counter.get() + 1)
+
 
 
           val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
-          println(counter.get()+"..")
+
           //println(lineToWrite)
           //println("---------------------")
           writer.write(lineToWrite)
