@@ -7,15 +7,14 @@ import org.idio.spotlight.utils.VectorUtils
 import scala.collection.JavaConversions._
 import spray.json._
 import DefaultJsonProtocol._
-import org.idio.word2vec.Word2Vec
 
 /**
  * Created by dav009 on 10/09/2014.
  */
 class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, List[String]]){
 
-  val model = new Word2Vec()
-  model.load(pathToModelFolder)
+  val word2vec: Word2VEC = new Word2VEC()
+  word2vec.loadModel(pathToModelFolder)
 
 
   // build type vectors
@@ -29,7 +28,8 @@ class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, Lis
     val contextVectors = dbpediaIds.map{
       entityName: String =>
         try{
-          Some(model.vocab.get(entityName).get)
+
+          Some(word2vec.getWordVector(entityName))
         }catch{
           case e:Exception => None
         }
@@ -43,7 +43,7 @@ class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, Lis
 
   def getVector(dbpediaId:String): Array[Float] ={
 
-    val contextVector:Array[Float] = model.vocab.get(dbpediaId).get
+    val contextVector:Array[Float] = word2vec.getWordVector(dbpediaId)
     contextVector
   }
 

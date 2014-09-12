@@ -76,11 +76,10 @@
     </dependency>
 
 
-
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
+    <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
     <plugins>
 
@@ -178,6 +177,13 @@
       <repository>
           <id>idio-spotlight-releases-repository</id>
           <url>https://bytebucket.org/idio/mvn-repo/raw/master/releases</url>
+      </repository>
+
+      <repository>
+          <id>snapshots-repo</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+          <releases><enabled>false</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
       </repository>
   </repositories>
 
