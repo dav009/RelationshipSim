@@ -3,63 +3,58 @@ package org.idio.spotlight
 import java.io.{PrintWriter, File, FileInputStream}
 import java.util.concurrent.atomic.AtomicInteger
 import _root_.spray.json.DefaultJsonProtocol
-import org.idio.spotlight.utils.VectorUtils
 import scala.collection.JavaConversions._
 import spray.json._
 import DefaultJsonProtocol._
+import org.idio.vectors.word2vec.{GoogleVectorStore}
+import org.idio.vectors.FeatureVectorStore
+import org.idio.vectors.spotlight.SpotlightVectorStore
 
 /**
  * Created by dav009 on 10/09/2014.
  */
-class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, List[String]]){
+class EntitySimilarity(val vectorStore:FeatureVectorStore){
 
-  val word2vec: Word2VEC = new Word2VEC()
-  word2vec.loadModel(pathToModelFolder)
-
-
-  // build type vectors
-  val typeVectors: Map[String, Array[Float]]  = {
-    println("calculating type vectors....")
-    typeSamples.mapValues(getVector(_))
-  }
+  def calculateSimilarities(pathToOutputFile:String, pathToRelsFile:String, objectKey:String){
 
 
-  def getVector(dbpediaIds:List[String]):  Array[Float] ={
-    val contextVectors = dbpediaIds.map{
-      entityName: String =>
-        try{
+    val allRelationshipLines = scala.io.Source.fromFile(pathToRelsFile).getLines().toIterable
 
-          Some(word2vec.getWordVector(entityName))
-        }catch{
-          case e:Exception => None
+    val writer = new PrintWriter(new File(pathToOutputFile))
+
+    println("calculating weights..")
+    val counter:AtomicInteger = new AtomicInteger(0)
+    allRelationshipLines.par.foreach{
+      line:String =>
+
+        try {
+          counter.set(counter.get() + 1)
+          println(counter.get()+"..")
+
+          // Deserializing the relationship object
+          val relationship = line.trim().parseJson.convertTo[Map[String, String]]
+          val typeId = relationship.get("type_id").get
+          val topicDbpedia = relationship.get("topic_dbpedia").get
+          val topicMid = relationship.get("topic_mid").get
+          val objectKeyValue = relationship.get(objectKey).get
+
+          val similarityScore = vectorStore.getSimilarity(typeId, objectKeyValue)
+
+          val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
+          writer.write(lineToWrite)
+
+        }catch {
+          case e:Exception => {
+            println(e.getMessage)
+
+          }
         }
-    }.flatten.toList
-    val releavanceScoreUtils = new VectorUtils()
 
-    val mergedVector = releavanceScoreUtils.mergeVectors(contextVectors)
-    //val preprocessedVector = releavanceScoreUtils.preprocessVector(mergedVector, 500)
-    mergedVector
-  }
 
-  def getVector(dbpediaId:String): Array[Float] ={
-
-    val contextVector:Array[Float] = word2vec.getWordVector(dbpediaId)
-    contextVector
-  }
-
-  def getSimilarity(midType:String, entity:String): Double ={
-    var score = -2.0
-
-    try{
-      val typeVector = typeVectors.get(midType).get
-      val entityVector = getVector(entity)
-      score = EntityScorer.score(typeVector, entityVector)
-      //score = new EntityScorer(typeVector, entityVector).score()
-    }catch{
-      case e:Exception => println(e.getMessage())
     }
 
-    score
+    writer.close()
+
   }
 
 }
@@ -75,52 +70,31 @@ object EntitySimilarity{
 
 
   def main(args:Array[String]): Unit ={
+
     val pathToFileWithRels = args(0)
     val pathsToFileWithTypeSamples = args(1)
-    val pathToSpotlightModel = args(2)
+    val pathToVectorModel = args(2)
     val pathToOutputFile= args(3)
-
-    val writer = new PrintWriter(new File(pathToOutputFile))
+    val choice=args(4)
 
     println("loading type samples file..")
     val typeSamples = loadTypeSamples(pathsToFileWithTypeSamples)
 
-    println("loading similarity calculator..")
-    val similarityCalculator = new EntitySimilarity(pathToSpotlightModel, typeSamples)
-
-    val allRelationshipLines = scala.io.Source.fromFile(pathToFileWithRels).getLines().toIterable
-
-    println("calculating weights..")
-    val counter:AtomicInteger = new AtomicInteger(0)
-    allRelationshipLines.par.foreach{
-      line:String =>
-
-        try {
-          counter.set(counter.get() + 1)
-          println(counter.get()+"..")
-          val relationship = line.trim().parseJson.convertTo[Map[String, String]]
-          val typeId = relationship.get("type_id").get
-          val topicDbpedia = relationship.get("topic_dbpedia").get
-          val topicMid = relationship.get("topic_mid").get
-          val similarityScore = similarityCalculator.getSimilarity(typeId, topicDbpedia)
-
-          val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
-
-          //println(lineToWrite)
-          //println("---------------------")
-          writer.write(lineToWrite)
-
-        }catch {
-          case e:Exception => {
-            println(e.getMessage)
-
-          }
-        }
-
-
+    val tokenStore:FeatureVectorStore = choice match{
+      case "word2vec" => new SpotlightVectorStore(pathToVectorModel, typeSamples)
+      case "spotlight" => new GoogleVectorStore(pathToVectorModel, typeSamples)
     }
 
-    writer.close()
+    val objectKey:String = choice match{
+      case "word2vec" => "topic_mid"
+      case "spotlight" => "topic_dbpedia"
+    }
+
+
+    println("loading similarity calculator..")
+    val similarityCalculator = new EntitySimilarity(tokenStore)
+
+    similarityCalculator.calculateSimilarities(pathToOutputFile, pathToFileWithRels, objectKey)
 
   }
 
