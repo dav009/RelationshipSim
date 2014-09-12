@@ -1,27 +1,26 @@
 package org.idio.spotlight
 
-import org.dbpedia.spotlight.model.TokenType
 
 /**
  * Created by dav009 on 10/09/2014.
  */
 object EntityScorer {
 
-  def score(vector1:Map[TokenType, Double],vector2:Map[TokenType, Double]):Double={
-    var score :Double= 0.0
-    val keysOverlap = vector1.keySet.intersect(vector2.keySet).toSet
-    keysOverlap.foreach{
-      token:TokenType =>
-
-        score = score +( vector1.getOrElse(token, 0.0) * vector2.getOrElse(token, 0.0))
-
+  def cosine(vec1: Array[Float], vec2: Array[Float]): Double = {
+    var dot, sum1, sum2 = 0.0
+    for (i <- 0 until vec1.length) {
+      dot += (vec1(i) * vec2(i))
+      sum1 += (vec1(i) * vec1(i))
+      sum2 += (vec2(i) * vec2(i))
     }
-    score / (getMagnitude(vector1)*getMagnitude(vector2))
+    dot / (math.sqrt(sum1) * math.sqrt(sum2))
   }
 
-  def getMagnitude(vector:Map[TokenType, Double]):Double = {
-
-    math.sqrt(vector.values.map(math.pow(_,2)).sum)
-
+  def score(vector1:Array[Float],vector2:Array[Float]):Double={
+    cosine(vector1, vector2)
   }
+
+
 }
+
+

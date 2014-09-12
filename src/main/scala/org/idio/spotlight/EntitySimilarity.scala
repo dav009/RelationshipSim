@@ -3,56 +3,48 @@ package org.idio.spotlight
 import java.io.{PrintWriter, File, FileInputStream}
 import java.util.concurrent.atomic.AtomicInteger
 import _root_.spray.json.DefaultJsonProtocol
-import org.dbpedia.spotlight.db.memory.{MemoryTokenTypeStore, MemoryContextStore, MemoryStore, MemoryResourceStore}
-import org.dbpedia.spotlight.model.{DBpediaResource, TokenType}
 import org.idio.spotlight.utils.VectorUtils
 import scala.collection.JavaConversions._
 import spray.json._
 import DefaultJsonProtocol._
+import org.idio.word2vec.Word2Vec
 
 /**
  * Created by dav009 on 10/09/2014.
  */
 class EntitySimilarity(pathToModelFolder:String, val typeSamples:Map[String, List[String]]){
 
-  val tokenMemFile = new FileInputStream(new File(pathToModelFolder, "tokens.mem"))
-  var tokenStore: MemoryTokenTypeStore = MemoryStore.loadTokenTypeStore(tokenMemFile)
+  val model = new Word2Vec()
+  model.load(pathToModelFolder)
 
-  val resourceFile = new FileInputStream(new File(pathToModelFolder, "res.mem"))
-  var resStore: MemoryResourceStore = MemoryStore.loadResourceStore(resourceFile)
-
-  val contextMemFile = new FileInputStream(new File(pathToModelFolder, "context.mem"))
-  var contextStore: MemoryContextStore = MemoryStore.loadContextStore(contextMemFile, this.tokenStore)
 
   // build type vectors
-  val typeVectors: Map[String, Map[TokenType, Double]]  = {
+  val typeVectors: Map[String, Array[Float]]  = {
     println("calculating type vectors....")
     typeSamples.mapValues(getVector(_))
   }
 
 
-  def getVector(dbpediaIds:List[String]): Map[TokenType, Double] ={
-    val typeResources = dbpediaIds.map{
+  def getVector(dbpediaIds:List[String]):  Array[Float] ={
+    val contextVectors = dbpediaIds.map{
       entityName: String =>
         try{
-          Some(resStore.getResourceByName(entityName))
+          Some(model.vocab.get(entityName).get)
         }catch{
           case e:Exception => None
         }
     }.flatten.toList
     val releavanceScoreUtils = new VectorUtils()
-    val contextVectors : List[Map[TokenType, Int]]= typeResources.map(contextStore.getContextCounts(_).toMap)
+
     val mergedVector = releavanceScoreUtils.mergeVectors(contextVectors)
-    val preprocessedVector = releavanceScoreUtils.preprocessVector(mergedVector, 500)
-    preprocessedVector
+    //val preprocessedVector = releavanceScoreUtils.preprocessVector(mergedVector, 500)
+    mergedVector
   }
 
-  def getVector(dbpediaId:String): Map[TokenType, Double] ={
-    val resource:DBpediaResource = resStore.getResourceByName(dbpediaId);
-    val contextVector:java.util.Map[TokenType, Int] = contextStore.getContextCounts(resource)
-    val releavanceScoreUtils = new VectorUtils()
-    val preprocessedVector = releavanceScoreUtils.preprocessVector(contextVector, 500)
-    preprocessedVector
+  def getVector(dbpediaId:String): Array[Float] ={
+
+    val contextVector:Array[Float] = model.vocab.get(dbpediaId).get
+    contextVector
   }
 
   def getSimilarity(midType:String, entity:String): Double ={
