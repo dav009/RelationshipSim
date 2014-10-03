@@ -48,10 +48,6 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
-      <!--
-            License: Scala License
-            http://www.scala-lang.org/node/146
-      -->
     </dependency>
 
 
@@ -68,26 +64,14 @@
         <groupId>com.github.scopt</groupId>
         <artifactId>scopt_2.10</artifactId>
         <version>2.1.0</version>
-
-
-        <!--
-          License: MIT
-        -->
     </dependency>
+
       <dependency>
           <groupId>com.github.scala-blitz</groupId>
           <artifactId>scala-blitz_2.10</artifactId>
           <version>1.0-M2</version>
       </dependency>
 
-     <!--
-      <dependency>
-          <groupId>org.dbpedia</groupId>
-          <artifactId>spotlight</artifactId>
-          <version>0.6</version>
-
-      </dependency>
-    -->
 
 
 
@@ -145,8 +129,6 @@
         <configuration>
           <useFile>false</useFile>
           <disableXmlReport>true</disableXmlReport>
-          <!-- If you have classpath issue like NoDefClassError,... -->
-          <!-- useManifestOnlyJar>false</useManifestOnlyJar -->
           <includes>
             <include>**/*Test.*</include>
             <include>**/*Suite.*</include>

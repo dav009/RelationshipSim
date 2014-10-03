@@ -1,10 +1,6 @@
-package org.idio.vectors.word2vec; /**
- * Created with IntelliJ IDEA.
- * User: dav009
- * Date: 12/09/2014
- * Time: 13:56
- * To change this template use File | Settings | File Templates.
- */
+package org.idio.vectors.word2vec;
+
+
 
 
 import java.io.BufferedInputStream;
@@ -14,7 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+/*
+* Deserializes Vectors created by Word2Vec
+* */
+
 public class Word2VEC {
+
 
     public static void main(String[] args) throws IOException {
         Word2VEC vec = new Word2VEC();
@@ -22,24 +23,21 @@ public class Word2VEC {
         for(String key : vec.getWordMap().keySet()){
             System.out.println(key);
         }
-//	 System.out.println(vec.distance("ç”·äºº"));
-
-        //ç”·äºº å›½çŽ‹ å¥³äºº
     }
 
+    /*
+    * Maps a key to their Vector
+    * */
     private HashMap<String, float[]> wordMap = new HashMap<String, float[]>();
+
 
     private int words;
     private int size;
     private int topNSize = 40;
 
-    /**
-     * åŠ è½½æ¨¡åž‹
-     *
-     * @param path
-     *            æ¨¡åž‹çš„è·¯å¾„
-     * @throws IOException
-     */
+    /*
+    *  Loads a serialized Word2Vec Model
+    * */
     public void loadModel(String path) throws IOException {
         DataInputStream dis = null;
         BufferedInputStream bis = null;
@@ -84,19 +82,9 @@ public class Word2VEC {
 
     private static final int MAX_SIZE = 50;
 
-
-
-
-
-
-
-
-    /**
-     * å¾—åˆ°è¯å‘é‡
-     *
-     * @param word
-     * @return
-     */
+    /*
+    * Returns the feature vector of a word
+    * */
     public float[] getWordVector(String word) {
         return wordMap.get(word);
     }
@@ -107,12 +95,6 @@ public class Word2VEC {
         return getFloat(bytes);
     }
 
-    /**
-     * è¯»å–ä¸€ä¸ªfloat
-     *
-     * @param b
-     * @return
-     */
     public static float getFloat(byte[] b) {
         int accum = 0;
         accum = accum | (b[0] & 0xff) << 0;
@@ -122,15 +104,7 @@ public class Word2VEC {
         return Float.intBitsToFloat(accum);
     }
 
-    /**
-     * è¯»å–ä¸€ä¸ªå­—ç¬¦ä¸²
-     *
-     * @param dis
-     * @return
-     * @throws IOException
-     */
     private static String readString(DataInputStream dis) throws IOException {
-        // TODO Auto-generated method stub
         byte[] bytes = new byte[MAX_SIZE];
         byte b = dis.readByte();
         int i = -1;
