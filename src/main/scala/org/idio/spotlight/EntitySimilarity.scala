@@ -10,6 +10,9 @@ import org.idio.vectors.word2vec.{GoogleVectorStore}
 import org.idio.vectors.FeatureVectorStore
 import org.idio.vectors.spotlight.SpotlightVectorStore
 
+import scala.collection.par._
+import scala.collection.par.Scheduler.Implicits.global
+
 /**
  * Created by dav009 on 10/09/2014.
  */
@@ -24,7 +27,7 @@ class EntitySimilarity(val vectorStore:FeatureVectorStore){
 
     println("calculating weights..")
     val counter:AtomicInteger = new AtomicInteger(0)
-    allRelationshipLines.par.foreach{
+    allRelationshipLines.toParArray.foreach{
       line:String =>
 
         try {
@@ -37,8 +40,10 @@ class EntitySimilarity(val vectorStore:FeatureVectorStore){
           val topicDbpedia = relationship.get("topic_dbpedia").get
           val topicMid = relationship.get("topic_mid").get
           val objectKeyValue = relationship.get(objectKey).get
-
+          println("getting sim:"+ typeId +" and " + objectKeyValue )
           val similarityScore = vectorStore.getSimilarity(typeId, objectKeyValue)
+          println(similarityScore)
+          println("-----------------")
 
           val lineToWrite:String = similarityScore +"\t" + topicMid  +"\t" + topicDbpedia  +"\t" + typeId + "\n"
           writer.write(lineToWrite)
@@ -81,8 +86,8 @@ object EntitySimilarity{
     val typeSamples = loadTypeSamples(pathsToFileWithTypeSamples)
 
     val tokenStore:FeatureVectorStore = choice match{
-      case "word2vec" => new SpotlightVectorStore(pathToVectorModel, typeSamples)
-      case "spotlight" => new GoogleVectorStore(pathToVectorModel, typeSamples)
+      //case "spotlight" => new SpotlightVectorStore(pathToVectorModel, typeSamples)
+      case "word2vec" => new GoogleVectorStore(pathToVectorModel, typeSamples)
     }
 
     val objectKey:String = choice match{

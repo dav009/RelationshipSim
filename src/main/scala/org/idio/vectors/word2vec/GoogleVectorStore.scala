@@ -2,7 +2,8 @@ package org.idio.vectors.word2vec
 
 import org.idio.vectors.FeatureVectorStore
 import scala.collection.JavaConversions._
-
+import scala.collection.par._
+import scala.collection.par.Scheduler.Implicits.global
 /**
  * Created with IntelliJ IDEA.
  * User: dav009
@@ -18,8 +19,10 @@ class GoogleVectorStore(pathToModelFolder:String, typeSamples:Map[String, List[S
   // build type vectors
   val typeVectors: Map[String, Array[Float]]  = {
     println("calculating type vectors....")
-    typeSamples.mapValues(createTypeVector(_))
-  }
+    typeSamples.par.mapValues(createTypeVector(_)).seq.collect {
+      case (key, Some(value)) => key -> value
+    }
+  }.asInstanceOf[scala.collection.immutable.Map[String,Array[Float]]]
 
   def cosine(vec1: Array[Float], vec2: Array[Float]): Double = {
     var dot, sum1, sum2 = 0.0
@@ -39,47 +42,60 @@ class GoogleVectorStore(pathToModelFolder:String, typeSamples:Map[String, List[S
     var simScore = -2.0
 
     try{
-      val typeVector = typeVectors.get(midType).get
+
+
       val entityVector = getVector(entity)
+      val typeVector = typeVectors.get(midType).get
       simScore = score(typeVector, entityVector)
       //score = new EntityScorer(typeVector, entityVector).score()
     }catch{
-      case e:Exception => println(e.getMessage())
+      case e:Exception => e.printStackTrace()
     }
 
     simScore
   }
 
-  private def createTypeVector(listOfKeys:List[String]):Array[Float] ={
+  private def createTypeVector(listOfKeys:List[String]):Option[Array[Float]] ={
     val contextVectors = listOfKeys.map{
       entityName: String =>
         try{
 
-          Some(word2vec.getWordVector(entityName))
+          val mEntityName = entityName.slice(1, entityName.size)
+          //println("creating type vector")
+          //println("entity:" + mEntityName)
+          val vector = word2vec.getWordVector(mEntityName)
+          //println("vector:"+ vector)
+          //println("---")
+          Some(vector)
         }catch{
           case e:Exception => None
         }
     }.flatten.toList
 
-    val mergedVector:Array[Float] = mergeVectors(contextVectors)
+    val mergedVector:Option[Array[Float]] = mergeVectors(contextVectors.slice(0,500))
    mergedVector
   }
 
   def getVector(mid:String): Array[Float] ={
-    val contextVector:Array[Float] = word2vec.getWordVector(mid)
+    val contextVector:Array[Float] = word2vec.getWordVector(mid.slice(1, mid.size))
     contextVector
   }
 
 
 
-  def mergeVectors(vectors:List[Array[Float]]):Array[Float]={
-      val mergedVector : scala.collection.mutable.ArrayBuffer[Float]= new scala.collection.mutable.ArrayBuffer[Float](vectors(0).size)
+  def mergeVectors(vectors:List[Array[Float]]):Option[Array[Float]]={
+     if (vectors.size>0) {
+       val mergedVector: scala.collection.mutable.ArrayBuffer[Float] =  scala.collection.mutable.ArrayBuffer.fill(vectors(0).size)((0.0).toFloat)
 
-      vectors.foreach{
-        vector:Array[Float] =>
-          for((x,i) <- vector.view.zipWithIndex) mergedVector(i)=x
-      }
-      mergedVector.map(_/vectors.size).toArray
+       vectors.foreach {
+         vector: Array[Float] =>
+           for ((x, i) <- vector.view.zipWithIndex) mergedVector(i) = mergedVector(i) + x
+       }
+       Some(mergedVector.map(_ / vectors.size).toArray)
+     }
+     else{
+       None
+     }
   }
 
 }

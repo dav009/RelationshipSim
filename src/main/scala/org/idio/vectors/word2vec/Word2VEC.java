@@ -18,7 +18,10 @@ public class Word2VEC {
 
     public static void main(String[] args) throws IOException {
         Word2VEC vec = new Word2VEC();
-        vec.loadModel("vectors.bin");
+        vec.loadModel(args[0]);
+        for(String key : vec.getWordMap().keySet()){
+            System.out.println(key);
+        }
 //	 System.out.println(vec.distance("ç”·äºº"));
 
         //ç”·äºº å›½çŽ‹ å¥³äºº
@@ -43,7 +46,7 @@ public class Word2VEC {
         double len = 0;
         float vector = 0;
         try {
-            bis = new BufferedInputStream(new FileInputStream(path));
+            bis = new BufferedInputStream(new FileInputStream(path), 1560000);
             dis = new DataInputStream(bis);
             // //è¯»å–è¯æ•°
             words = Integer.parseInt(readString(dis));
@@ -70,7 +73,10 @@ public class Word2VEC {
                 dis.read();
             }
 
-        } finally {
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally {
             bis.close();
             dis.close();
         }
@@ -162,6 +168,8 @@ public class Word2VEC {
     public int getSize() {
         return size;
     }
+
+
 
 
 }

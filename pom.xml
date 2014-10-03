@@ -31,7 +31,7 @@
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <scala.version>2.9.3</scala.version>
+    <scala.version>2.10.3</scala.version>
   </properties>
 
 
@@ -57,23 +57,38 @@
 
       <dependency>
           <groupId>io.spray</groupId>
-          <artifactId>spray-json_2.9.3</artifactId>
+          <artifactId>spray-json_2.10</artifactId>
           <version>1.2.6</version>
-          <!--
-              License: MIT
-          -->
       </dependency>
+
 
 
 
     <dependency>
         <groupId>com.github.scopt</groupId>
-        <artifactId>scopt_2.9.3</artifactId>
-        <version>3.2.0</version>
+        <artifactId>scopt_2.10</artifactId>
+        <version>2.1.0</version>
+
+
         <!--
           License: MIT
         -->
     </dependency>
+      <dependency>
+          <groupId>com.github.scala-blitz</groupId>
+          <artifactId>scala-blitz_2.10</artifactId>
+          <version>1.0-M2</version>
+      </dependency>
+
+     <!--
+      <dependency>
+          <groupId>org.dbpedia</groupId>
+          <artifactId>spotlight</artifactId>
+          <version>0.6</version>
+
+      </dependency>
+    -->
+
 
 
   </dependencies>
